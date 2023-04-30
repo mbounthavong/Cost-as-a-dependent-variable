@@ -1,0 +1,159 @@
+---
+title: "Cost as a dependent variable: Application of the two-part model"
+author: "Mark Bounthavong"
+date: "30 April 2023"
+output:
+  rmdformats::downcute:
+    self_contained: true
+    default_style: "light"
+    downcute_theme: "default"
+---
+
+
+```{r setup, include=FALSE}
+## Global options
+knitr::opts_chunk$set(cache = TRUE)
+```
+
+
+## Introduction
+Modeling cost in a sample is problematic because of the large amount of subjects with zero costs and the long right-tail distribution. Although ordinary least squares (OLS) model can generate the mean costs, it doesn't do a good job of fitting the rest of the distribution, particularly when there is a large density of subjects with zero costs. 
+
+The two-part model take into account the large point mass of subjects with zero costs and non-parametric properties of the cost distribution. The first part of the model considers the probability that a subject has non-zero costs. The second part of the model fits the cost distribution data conditioned on the first part where the subject has non-zero costs. The structural expression of the two-part model: 
+
+$$ E[Y | \mathbf{X}] = Pr(Y > 0 | \mathbf{X}) * E[Y | Y > 0, \mathbf{X}] $$
+
+The first part $Pr(Y > 0 | \mathbf{X})$ denotes the probability that a subject has non-zero costs given a set of variables $\mathbf{X}$. The first part of the model can be either a logit or probit model. 
+
+The second part $E[Y | Y > 0, \mathbf{X}]$ denotes the expected costs $Y$ given that the subject has non-zero costs $Y > 0$ and a set of variables $\mathbf{X}$. The second part of the two-part model can be any regression model that will fit the data. Hence, OLS, log-transformed, and generalized linear models can be used in the second part. 
+
+Personally, I prefer to the logit model for the first part and a GLM gamma model for the second part. These specifications seem to consistently fit healthcare expenditure data well. 
+
+For this tutorial, we will use `R` to construct a two-part model for healthcare expenditures in a sample of subjects with hypertension from the Medical Expenditure Panel Survey. 
+
+
+## Motivating example
+To explore how to use the two-part model, we will use total healthcare expenditure among respondents with hypertension from the 2017 Medical Expenditure Panel Survey (MEPS) data. Specifically, we want to estimate the average healthcare expenditure among subjects with hypertension in the US in 2017. You can import the data from my GitHub site directly into R. 
+
+We will focus on adults (age >= 18 years old) with hypertension in the United States (US). To read the data, we will use the `haven` package, which will allow us to read a `Stata` `*.dta` file into R. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+library("haven")        ## Package to allow import of Stata *.dta file
+
+#### Import data
+data1 <- read_dta("https://github.com/mbounthavong/Cost-as-a-dependent-variable/blob/main/Data/limited_data.dta?raw=true")
+
+#### Restrict data to adults age > = 18 years old
+data1 <- data1[(data1$age17x >= "18"), ]
+```
+
+There should be 7,872 subjects in the data after restricting the sample to adults with hypertension. 
+
+Next, we visualize the distribution of the healthcare expenditure using a histogram. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+hist(data1$totexp17)
+summary(data1$totexp17)
+```
+
+The average healthcare expenditure is \$10,625 per subject. Notice the large point mass of subjects with zero or near zero costs. Also note the long right-tail of the healthcare expenditure distribution. This driven by a few subjects with large healthcare expenditures 
+
+## Two-part model
+To construct the two-part model, you will need to install and load the `twopartm` package into R. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+library("twopartm")     ## Package to perform two-part models
+```
+
+The main function that will be used is the `tpm`, which will allow you to build the first and second parts of the model.
+
+Generally, I use the same variables for the first and second parts of the two-part models. But some users may want to build a specific probability model for the first part that is different from the second part. To build the first part, you will need to include the formula for the `formula_part1` option. To build the second part, you will need to include the formula for the `formula_part2` option. 
+
+Here is an example: `tp.model <- tpm(formula_part1 = totexp17 ~ age17x + sex, forumla_part2 = totexp17 ~ age17x + sex + racev2x + hispanx, data = data1, link_part1 = "logit", link_part2 = Gamma(link = "log"))`
+
+For this exercise, we will use the same variables in both parts of the two-part model. 
+
+The first part can be either a logit or probit model. In this motivating example, we'll use the logit model for the first part. 
+
+The second part is a gamma model because it captures the cost distribution ranges between zero and infinity. It cannot be a negative value. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+#### Two-part model
+tpm.model1 <- tpm(totexp17 ~ age17x + sex + racev2x + hispanx + marry17x + povcat17, data = data1, link_part1 = "logit", family_part2 = Gamma(link = "log"))
+summary(tpm.model1)
+```
+
+The output will contain the results from the first and second parts of the model. However, this doesn't provide us with the average total healthcare expenditure for a subject with hypertension in the US in 2017. 
+
+The get the average total healthcare expenditure for the sample, we will use the `predict` function. We'll estimate the average total healthcare expenditure and then the standard errors. We set the `se.fit = TRUE` option because we want the function to estimate the standard errors using the Delta method. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+#### Generated the estimated total costs for each subject and summarize for the sample
+predict1 <- predict(tpm.model1, se.fit = TRUE)
+summary(predict1$fit)
+summary(predict1$se.fit)
+```
+
+According to the results from the `predict` function, the average healthcare expenditure among adults with hypertension in the US in 2017 was \$10,625.00 with a standard error of \$770.70. We can generate the 95% confidence interval (CI) by using the following equations:
+
+$$ LL = Mean - 1.96 * SE $$
+$$ UL = Mean + 1.96 * SE $$
+The lower limit (LL) and upper limit (UL) denote the range of the 95% CI. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+predict1$ci <- 1.96*predict1$se.fit
+predict1$ll <- predict1$fit - predict1$ci
+predict1$ul <- predict1$fit + predict1$ci
+summary(predict1$ll)
+summary(predict1$ul)
+```
+
+Based on these calculations, the 95% CI is between \$9,115 and \$12,136. 
+
+
+We can perform goodness of fit (GOF) tests to see if we have the correct specification for the two-part model. There are three GOF tests that we can perform. 
+
+The Pearson correlation tests for any correlation between the costs predictions and residual costs. We do not want to have any correlation between the predictions and residuals. 
+
+The Pregibon link test assesses whether the model is properly specified. We square the predicted estimates. and perform a linear regression with the predicted estimates. and the square of the predicted estimates. If there is no association with the square of the predicted estimates and the raw total healthcare expenditures, then the model specificity is considered fine. 
+
+The modified Hosmer-Lemeshow test assesses whether the mean residuals are equal to zero. I normally use 10 deciles of the predicted estimates for this test. If this is not statistically significant, then the model is correctly specified. 
+
+```{r, echo = TRUE, warning = FALSE, message = FALSE}
+#### GOF tests
+res <- data1$totexp17 - predict1$fit    ## Estimate the residuals
+summary(res)
+
+### Pearson correlation
+pwcorr <- cor.test(predict1$fit, res)
+pwcorr
+
+### Pregibon's link test
+xb2 <- predict1$fit * predict1$fit  ## Square the predicted values
+linear.model <- glm(data1$totexp17 ~ predict1$fit + xb2, family = gaussian(link = "identity"))
+summary(linear.model)
+
+### Modified Hosmer-Lemeshow test with 10 deciles
+library("ResourceSelection")  ## Package to perform the Hosmer-Lemeshow GOF test
+hoslem.test(data1$totexp17, predict1$fit, g = 10)
+```
+
+According to the results of the GOF tests, there does not appear to be any issues of mis-specification with the two-part model. Hence, we can conclude that the two-part model correctly models the total healthcare expenditures for subjects with hypertension in the US in 2017. 
+
+
+## Conclusion
+The average healthcare expenditure among subjects with hypertension in the US in 2017 was \$10,625 (95% CI: \$9,115, \$12,136). Based on the GOF tests, we can conclude that two-part model appears to correctly fit the raw data for total healthcare expenditures. Interestingly, the two-part model package `twopartm` in `R` is based on the `twopm` package for `Stata`. When comparing the two packages, the mean healthcare expenditure were exactly the same. However, I noticed some differences in the 95% CI generated between `R` and `Stata` packages. I'm not sure why the standard errors were different. I tried looking at the documentations, but I was unable to find a satisfying answer. I will continue to work on this issue and update when needed. 
+
+
+## Acknowledgements
+There are several papers that were helpful when developing this article. 
+
+Belotti, et al has a great paper on `twopm` package for `Stata` that you can read [here](https://journals.sagepub.com/doi/10.1177/1536867X1501500102)
+
+Deb and Norton have a fantastic paper in the Annual Review of Public Health titled "Modeling Health Care Expenditures and Use" that reviews the different models for cost data. You can find their paper [here](https://www.annualreviews.org/doi/abs/10.1146/annurev-publhealth-040617-013517)
+
+Duan created the `twopartm` package for R, which you can learn more about [here](https://cran.r-project.org/web/packages/twopartm/twopartm.pdf)
+
+
+## Work in progress
+This is a work in progress, and I’ll likely make updates as I learn more.
