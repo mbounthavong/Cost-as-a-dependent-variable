@@ -65,7 +65,7 @@ clear all
 import delimited "https://raw.githubusercontent.com/mbounthavong/Cost-as-a-dependent-variable/main/Data/limited_data.csv"
 /*******************************************************************************/
 
-
+/* The following code are for those users who imported the CSV file. The variables will need to be formatted for analysis  */
 
 **** Only include respondents who are 18 years and older
 keep if age17x >= 18
