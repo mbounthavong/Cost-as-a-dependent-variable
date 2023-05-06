@@ -69,7 +69,7 @@ The main function that will be used is the `tpm`, which will allow you to build 
 
 Generally, I use the same variables for the first and second parts of the two-part models. But some users may want to build a specific probability model for the first part that is different from the second part. To build the first part, you will need to include the formula for the `formula_part1` option. To build the second part, you will need to include the formula for the `formula_part2` option. 
 
-Here is an example: `tp.model <- tpm(formula_part1 = totexp17 ~ age17x + sex, forumla_part2 = totexp17 ~ age17x + sex + racev2x + hispanx, data = data1, link_part1 = "logit", link_part2 = Gamma(link = "log"))`
+Here is an example: `tp.model <- tpm(formula_part1 = totexp17 ~ age17x + sex, forumla_part2 = totexp17 ~ age17x + sex + racev2x + hispanx, data = data1, link_part1 = "logit", family_part2 = Gamma(link = "log"))`
 
 For this exercise, we will use the same variables in both parts of the two-part model. 
 

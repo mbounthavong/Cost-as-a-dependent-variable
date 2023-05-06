@@ -1602,7 +1602,7 @@ the <code>formula_part1</code> option. To build the second part, you
 will need to include the formula for the <code>formula_part2</code>
 option.</p>
 <p>Here is an example:
-<code>tp.model &lt;- tpm(formula_part1 = totexp17 ~ age17x + sex, forumla_part2 = totexp17 ~ age17x + sex + racev2x + hispanx, data = data1, link_part1 = &quot;logit&quot;, link_part2 = Gamma(link = &quot;log&quot;))</code></p>
+<code>tp.model &lt;- tpm(formula_part1 = totexp17 ~ age17x + sex, forumla_part2 = totexp17 ~ age17x + sex + racev2x + hispanx, data = data1, link_part1 = &quot;logit&quot;, family_part2 = Gamma(link = &quot;log&quot;))</code></p>
 <p>For this exercise, we will use the same variables in both parts of
 the two-part model.</p>
 <p>The first part can be either a logit or probit model. In this
