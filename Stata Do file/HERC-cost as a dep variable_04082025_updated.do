@@ -13,7 +13,7 @@ UW Advanced Methods Course Series. These methods helped me to better understand
 the nuances associated with skewed data (e.g., costs and counts). I recreated 
 these codes for Stata as part of a presentation on modeling cost as a dependent 
 variable. 
-********************************************************************************/
+******************************************************************************* */
 
 /******************************************************************************
 ---------------------------
@@ -51,11 +51,17 @@ I also experted the "clean" data file as a CSV using the following commands:
 outsheet dupersid age17x totexp17 sex racev2x hispanx marry17x povcat17 region17 using limited_data2.csv, comma nolabel
 
 
-******************************************************************************/
+***************************************************************************** */
 
 
 **** Plot a normal distribution with x = 0 and sd = 1
-graph twoway function y=normalden(x,0,1), range(-5 5) lw(medthick) legend(off)   xscale(lw(medthick)) yscale(lw(medthick)) graphregion(color(white)) bgcolor(white) ylabel(, nogrid)
+graph twoway function y=normalden(x,0,1), range(-5 5) lw(medthick) legend(off) ///
+	xscale(lw(medthick)) ///
+	yscale(lw(medthick)) ///
+	graphregion(color(white)) ///
+	bgcolor(white) ///
+	ylabel(, nogrid) ///
+	xlabel(, nogrid)
 
 
 /*************************** THIS IS OLD CODE **********************************
@@ -74,15 +80,15 @@ keep if hibpdx == 1 /* You will need to restrict the sample to those with HTN fo
 
 **** Rename all variables to lower case (may not be necessary if the column names are already lowercase)
 rename *, lower
-*******************************************************************************/
+****************************************************************************** */
 
 
 
-/********* THIS IS UPDATED CODE (subjects with hypertension only) **************/
+/********* THIS IS UPDATED CODE (subjects with hypertension only) ************* */
 ***** FOR WINDOWS or MAC:
 clear all
 import delimited "https://raw.githubusercontent.com/mbounthavong/Cost-as-a-dependent-variable/main/Data/limited_data.csv"
-/*******************************************************************************/
+/****************************************************************************** */
 
 /* The following code are for those users who imported the CSV file. The variables will need to be formatted for analysis  */
 
@@ -175,8 +181,6 @@ kdensity totexp17
 
 **** Skewness
 summarize totexp17, detail
-sktest totexp17 /* test for skewness */
-
 
 
 *********************************
@@ -298,7 +302,7 @@ reg res_lols xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
 
 test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
 
-drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb2
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb xb2
 
 
 
