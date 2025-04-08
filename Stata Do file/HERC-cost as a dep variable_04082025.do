@@ -2,19 +2,29 @@
 ** TITLE:		Cost as a dependent variable
 ** PROGRAMMER:	Mark Bounthavong
 ** DATE:		10 April 2021
-** VERSION: 	1.2
+** VERSION: 	1.3
 ** UPDATED: 	08 April 2025
 ** UPDATED BY:	Mark Bounthavong
 ********************************************************************************
 
 /********************************************************************************
-Acknowledgements: Many of the codes were from lectures that I took at the UW Advanced Methods Course Series. These methods helped me to better understand the nuances associated with skewed data (e.g., costs and counts). I recreated these codes for Stata as part of a presentation on modeling cost as a dependent variable. 
+Acknowledgements: Many of the codes were from lectures that I took at the 
+UW Advanced Methods Course Series. These methods helped me to better understand 
+the nuances associated with skewed data (e.g., costs and counts). I recreated 
+these codes for Stata as part of a presentation on modeling cost as a dependent 
+variable. 
 ********************************************************************************/
 
 /******************************************************************************
 ---------------------------
 Developer notes
 ---------------------------
+
+---------------------------
+Notes 08 April 2025:
+---------------------------
+- Verified links are working
+
 
 ---------------------------
 Notes 22 April 2023:
@@ -38,18 +48,22 @@ outsheet dupersid age17x totexp17 sex racev2x hispanx marry17x povcat17 region17
 
 ******************************************************************************/
 
+
 **** Plot a normal distribution with x = 0 and sd = 1
 graph twoway function y=normalden(x,0,1), range(-5 5) lw(medthick) legend(off)   xscale(lw(medthick)) yscale(lw(medthick)) graphregion(color(white)) bgcolor(white) ylabel(, nogrid)
 
 
 /*************************** THIS IS OLD CODE **********************************
-Note: For those users who wish to download the data, you will need to make sure that you include the correct file path.
+Note: For those users who wish to download the data, 
+you will need to make sure that you include the correct 
+file path.
 
 ***** FOR WINDOWS:
 clear all
-cd "C:\Users\mbounthavong\Dropbox\VA-related work\HERC\Cyberseminar - Cost as a dependent variable\Data"
+cd "[enter file path of data]"
 use H201.dta
-keep dupersid totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 hibpdx
+
+keep dupersid totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 hibpdx /* parse data */
 
 keep if hibpdx == 1 /* You will need to restrict the sample to those with HTN for this exercise */
 
@@ -67,11 +81,15 @@ import delimited "https://raw.githubusercontent.com/mbounthavong/Cost-as-a-depen
 
 /* The following code are for those users who imported the CSV file. The variables will need to be formatted for analysis  */
 
+
 **** Only include respondents who are 18 years and older
 keep if age17x >= 18
 
 
+
 **** Clean data
+
+// FEMALE variable
 gen female = .
 	replace female = 0 if sex == "1 MALE"
 	replace female = 1 if sex == "2 FEMALE"
@@ -79,6 +97,7 @@ label define female_lbl 0 "Male" 1 "Fenale"
 label values female female_lbl
 tab female, m
 
+// RACE variable
 gen race = .
 	replace race = 0 if racev2x == "1 WHITE - NO OTHER RACE REPORTED"
 	replace race = 1 if racev2x == "2 BLACK - NO OTHER RACE REPORTED"
@@ -92,11 +111,13 @@ label define race_lbl 0 "White" 1 "Black" 2 "American Indian/Alaska Native" 3 "A
 label values race race_lbl
 tab race, m
 
+// HISPANIC variable
 gen hispanic = .
 	replace hispanic = 0 if hispanx == "2 NOT HISPANIC"
 	replace hispanic = 1 if hispanx == "1 HISPANIC"
 tab hispanic, m
 
+// MARITAL STATUS variable
 gen marital_status = .
 	replace marital_status = 0 if marry17x == "5 NEVER MARRIED"
 	replace marital_status = 1 if marry17x == "1 MARRIED"
@@ -109,6 +130,7 @@ label define marital_lbl 0 "Never married" 1 "Married" 2 "Widowed" 3 "Divorced" 
 label values marital_status marital_lbl
 tab marital_status, m
 
+// POVERTY STATUS variable
 gen poverty_status = .
 	replace poverty_status = 0 if povcat17 == "1 POOR/NEGATIVE"
 	replace poverty_status = 1 if povcat17 == "2 NEAR POOR"
@@ -119,6 +141,7 @@ label define poverty_lbl 0 "Poor" 1 "Near poor" 2 "Low income" 3 "Middle income"
 label values poverty_status poverty_lbl
 tab poverty_status, m
 
+// REGION variable
 gen region = .
 	replace region = 0 if region17 == "1 NORTHEAST"
 	replace region = 1 if region17 == "2 MIDWEST"
@@ -127,6 +150,7 @@ gen region = .
 label define region_lbl 0 "Northeast" 1 "Midwest" 2 "South" 3 "West"
 label values region region_lbl
 tab region, m
+	
 	
 // rename variables
 drop region17 sex racev2x hispanx marry17x povcat17
@@ -139,6 +163,7 @@ rename marital_status marry17x
 rename poverty_status povcat17
 	
 	
+	
 **** Visual inspection of the data
 histogram totexp17, bin(50) percent normal
 kdensity totexp17
@@ -146,6 +171,7 @@ kdensity totexp17
 **** Skewness
 summarize totexp17, detail
 sktest totexp17 /* test for skewness */
+
 
 
 *********************************
@@ -188,6 +214,7 @@ reg res_ols xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons
 test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
 
 drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb xb2 
+
 
 
 *********************************
@@ -267,6 +294,8 @@ reg res_lols xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
 test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
 
 drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb2
+
+
 
 *********************************
 ** MODEL 4: GLM (gamma)
