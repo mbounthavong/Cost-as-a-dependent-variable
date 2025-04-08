@@ -25,8 +25,8 @@ Notes 08 April 2025:
 ---------------------------
 - Verified links are working
 
-- I noticed the results from this MEPS data is "slightly" different from 
-- the presentation. I think there might have been an update to the MEPS
+- I noticed the results from this MEPS data are "slightly" different from 
+- the 2023 presentation. I think there might have been an update to the MEPS
 - data since the time I ran these analysis. However, the differences are
 - minor and do not take away from the presentation.
 
