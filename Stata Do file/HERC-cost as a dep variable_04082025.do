@@ -1,0 +1,335 @@
+********************************************************************************
+** TITLE:		Cost as a dependent variable
+** PROGRAMMER:	Mark Bounthavong
+** DATE:		10 April 2021
+** VERSION: 	1.2
+** UPDATED: 	08 April 2025
+** UPDATED BY:	Mark Bounthavong
+********************************************************************************
+
+/********************************************************************************
+Acknowledgements: Many of the codes were from lectures that I took at the UW Advanced Methods Course Series. These methods helped me to better understand the nuances associated with skewed data (e.g., costs and counts). I recreated these codes for Stata as part of a presentation on modeling cost as a dependent variable. 
+********************************************************************************/
+
+/******************************************************************************
+---------------------------
+Developer notes
+---------------------------
+
+---------------------------
+Notes 22 April 2023:
+---------------------------
+
+- We will use the MEPS 2017 data file for this exercise.
+
+- Previous code had the user download and load the file. Since the syntax is diffrent between WINDOWS and MAC users, I had provided code for both. However, it is much easier to import the CSV file because the syntax is the same for WINDOWS and MAC users. In this update, I added the code to import the CSV using. 
+
+- You can import this CSV file from GitHub into Stata using the following command:
+import delimited "https://raw.githubusercontent.com/mbounthavong/STATA-programming-and-codes/master/limited_data.csv"
+
+---------------------------
+Notes 29 April 2023:
+---------------------------
+The variables are in string. I needed to add a data cleaning section to clean the data for analysis.
+
+I also experted the "clean" data file as a CSV using the following commands:
+outsheet dupersid age17x totexp17 sex racev2x hispanx marry17x povcat17 region17 using limited_data2.csv, comma nolabel
+
+
+******************************************************************************/
+
+**** Plot a normal distribution with x = 0 and sd = 1
+graph twoway function y=normalden(x,0,1), range(-5 5) lw(medthick) legend(off)   xscale(lw(medthick)) yscale(lw(medthick)) graphregion(color(white)) bgcolor(white) ylabel(, nogrid)
+
+
+/*************************** THIS IS OLD CODE **********************************
+Note: For those users who wish to download the data, you will need to make sure that you include the correct file path.
+
+***** FOR WINDOWS:
+clear all
+cd "C:\Users\mbounthavong\Dropbox\VA-related work\HERC\Cyberseminar - Cost as a dependent variable\Data"
+use H201.dta
+keep dupersid totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 hibpdx
+
+keep if hibpdx == 1 /* You will need to restrict the sample to those with HTN for this exercise */
+
+**** Rename all variables to lower case (may not be necessary if the column names are already lowercase)
+rename *, lower
+*******************************************************************************/
+
+
+
+/********* THIS IS UPDATED CODE (subjects with hypertension only) **************/
+***** FOR WINDOWS or MAC:
+clear all
+import delimited "https://raw.githubusercontent.com/mbounthavong/Cost-as-a-dependent-variable/main/Data/limited_data.csv"
+/*******************************************************************************/
+
+/* The following code are for those users who imported the CSV file. The variables will need to be formatted for analysis  */
+
+**** Only include respondents who are 18 years and older
+keep if age17x >= 18
+
+
+**** Clean data
+gen female = .
+	replace female = 0 if sex == "1 MALE"
+	replace female = 1 if sex == "2 FEMALE"
+label define female_lbl 0 "Male" 1 "Fenale"
+label values female female_lbl
+tab female, m
+
+gen race = .
+	replace race = 0 if racev2x == "1 WHITE - NO OTHER RACE REPORTED"
+	replace race = 1 if racev2x == "2 BLACK - NO OTHER RACE REPORTED"
+	replace race = 2 if racev2x == "3 AMER INDIAN/ALASKA NATIVE-NO OTHER RACE"
+	replace race = 3 if racev2x == "4 ASIAN INDIAN - NO OTHER RACE REPORTED"
+	replace race = 3 if racev2x == "5 CHINESE - NO OTHER RACE REPORTED"
+	replace race = 3 if racev2x == "6 FILIPINO - NO OTHER RACE REPORTED"
+	replace race = 3 if racev2x == "10 OTH ASIAN/NATV HAWAIIAN/PACFC ISL-NO OTH"
+	replace race = 4 if racev2x == "12 MULTIPLE RACES REPORTED"
+label define race_lbl 0 "White" 1 "Black" 2 "American Indian/Alaska Native" 3 "Asian" 4 "Multiple races reported"
+label values race race_lbl
+tab race, m
+
+gen hispanic = .
+	replace hispanic = 0 if hispanx == "2 NOT HISPANIC"
+	replace hispanic = 1 if hispanx == "1 HISPANIC"
+tab hispanic, m
+
+gen marital_status = .
+	replace marital_status = 0 if marry17x == "5 NEVER MARRIED"
+	replace marital_status = 1 if marry17x == "1 MARRIED"
+	replace marital_status = 2 if marry17x == "2 WIDOWED"
+	replace marital_status = 3 if marry17x == "3 DIVORCED"
+	replace marital_status = 4 if marry17x == "4 SEPARATED"
+	replace marital_status = 5 if marry17x == "-7 REFUSED"
+	replace marital_status = 5 if marry17x == "-8 DK"
+label define marital_lbl 0 "Never married" 1 "Married" 2 "Widowed" 3 "Divorced" 4 "Separated" 5 "Unknown/Refused"
+label values marital_status marital_lbl
+tab marital_status, m
+
+gen poverty_status = .
+	replace poverty_status = 0 if povcat17 == "1 POOR/NEGATIVE"
+	replace poverty_status = 1 if povcat17 == "2 NEAR POOR"
+	replace poverty_status = 2 if povcat17 == "3 LOW INCOME"
+	replace poverty_status = 3 if povcat17 == "4 MIDDLE INCOME"
+	replace poverty_status = 4 if povcat17 == "5 HIGH INCOME"
+label define poverty_lbl 0 "Poor" 1 "Near poor" 2 "Low income" 3 "Middle income" 4 "High income"
+label values poverty_status poverty_lbl
+tab poverty_status, m
+
+gen region = .
+	replace region = 0 if region17 == "1 NORTHEAST"
+	replace region = 1 if region17 == "2 MIDWEST"
+	replace region = 2 if region17 == "3 SOUTH"
+	replace region = 3 if region17 == "4 WEST"
+label define region_lbl 0 "Northeast" 1 "Midwest" 2 "South" 3 "West"
+label values region region_lbl
+tab region, m
+	
+// rename variables
+drop region17 sex racev2x hispanx marry17x povcat17
+
+rename region region17
+rename female sex
+rename race racev2x
+rename hispanic hispanx
+rename marital_status marry17x
+rename poverty_status povcat17
+	
+	
+**** Visual inspection of the data
+histogram totexp17, bin(50) percent normal
+kdensity totexp17
+
+**** Skewness
+summarize totexp17, detail
+sktest totexp17 /* test for skewness */
+
+
+*********************************
+** MODEL 1: OLS
+*********************************
+**** MODEL 1: OLS
+reg totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 /* OLS model */ 
+predict yhat /* get the fitted values */
+predict error, resid /* get the residuals */
+graph twoway scatter error yhat /* plot the residuals to the fitted value */
+rvfplot, yline(0) /* alternatively, you can use this command */
+
+summarize yhat, detail
+summarize totexp17 yhat
+histogram yhat, bin(50) percent normal
+
+estat szr age17x sex racev2x hispanx marry17x povcat17 region17 /* Szroeter's test for homoskedasticity */
+
+**** GOF tests
+qui reg totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 /* OLS model */ 
+predict xb, xb
+gen mu_ols = xb
+gen res_ols = totexp17 - mu_ols
+
+* Pearson corr
+pwcorr res_ols mu_ols, sig
+
+* Link test
+gen xb2 = xb^2
+reg totexp17 xb xb2
+
+qui reg totexp17 age17x sex racev2x hispanx marry17x povcat17 region17 /* OLS model */  
+linktest
+
+* H-L test
+xtile xbtile = xb, nq(10)
+qui tab xbtile, gen(xbt)
+reg res_ols xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons
+
+test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
+
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb xb2 
+
+
+*********************************
+** MODEL 2: Log-OLS
+*********************************
+gen lntptexp = ln(totexp17)
+
+histogram lntptexp, bin(50) percent normal
+summarize lntptexp, detail
+
+**** MODEL 2: Log-OLS
+reg lntptexp age17x sex racev2x hispanx marry17x povcat17 region17
+
+predict lh_yhat, xb
+gen exp_lnyhat = exp(lh_yhat)
+summarize exp_lnyhat, detail
+summarize totexp17 exp_lnyhat
+
+
+* Pearson corr
+gen res_lny = totexp17 - exp_lnyhat
+pwcorr res_lny exp_lnyhat, sig
+
+* Link test
+gen xb2 = lh_yhat^2
+reg lntptexp lh_yhat xb2, robust
+
+
+* H-L test
+xtile xbtile = lh_yhat, nq(10)
+qui tab xbtile, gen(xbt)
+reg res_lny xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
+
+test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
+
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb2 
+
+
+
+*********************************
+** MODEL 3: Log-OLS w/smearing
+*********************************
+* MODEL 3: Log-OLS w/smearing
+reg lntptexp age17x sex racev2x hispanx marry17x povcat17
+
+predict xb, xb
+* Smearing estimator
+gen smr = exp(lntptexp - lh_yhat)
+summarize smr
+
+gen smear = r(mean) 
+gen mu = exp(lh_yhat) * smear
+gen mu_lols = exp(lh_yhat) * smear
+gen res_lols = totexp17 - mu_lols
+summarize totexp17 mu 
+summarize mu, detail
+
+
+* Park test - detect heteroscedasticity in log-scale
+gen res = (lntptexp - xb)^2
+glm res age17x sex racev2x hispanx marry17x povcat17, family(gamma) link(log) robust
+test
+
+* Pearson corr
+pwcorr res_lols mu, sig
+
+* Link test
+gen xb2 = xb^2
+reg lntptexp xb xb2, robust
+
+
+* H-L test
+xtile xbtile = xb, nq(10)
+qui tab xbtile, gen(xbt)
+reg res_lols xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
+
+test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
+
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb2
+
+*********************************
+** MODEL 4: GLM (gamma)
+*********************************
+glm totexp17 age17x sex racev2x hispanx marry17x povcat17, family(gamma) link(log)
+
+predict glm_1
+summarize glm_1, detail
+
+histogram glm_1, bin(50) percent normal
+
+predict xb, xb
+gen mu_glm = exp(xb)
+gen res_glm = totexp17 - mu_glm
+summarize totexp17 mu_glm 
+
+* Pearson corr
+pwcorr res_glm mu_glm, sig
+
+* Link test
+gen xb2 = xb^2
+reg totexp17 xb xb2, robust
+
+* H-L test
+xtile xbtile = xb, nq(10)
+qui tab xbtile, gen(xbt)
+reg res_glm xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
+
+test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
+
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile xb xb2
+
+
+
+*********************************
+** MODEL 5: Two-part model
+*********************************
+twopm totexp17 age17x sex racev2x hispanx marry17x povcat17, firstpart(logit) secondpart(glm, family(gamma) link(log))
+
+predict twopm_xb
+summarize twopm_xb, detail
+
+histogram twopm_xb, bin(50) percent normal
+
+gen res_twopm = totexp17 - twopm_xb
+
+summarize totexp17 mu mu_glm twopm_xb
+
+* Pearson corr
+pwcorr res_twopm twopm_xb, sig
+
+* Link test
+gen xb2 = twopm_xb^2
+reg totexp17 twopm_xb xb2, robust
+
+
+xtile xbtile = twopm_xb, nq(10)
+qui tab xbtile, gen(xbt)
+reg res_twopm xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10, nocons robust
+
+test xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10
+
+drop xbt1 xbt2 xbt3 xbt4 xbt5 xbt6 xbt7 xbt8 xbt9 xbt10 xbtile
+
+
+
