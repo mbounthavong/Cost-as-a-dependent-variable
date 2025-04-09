@@ -1,4 +1,4 @@
-# Cost-as-a-dependent-variable
+# Cost as a dependent variable workshop
 GitHub page: https://mbounthavong.github.io/Cost-as-a-dependent-variable/
 
 ## Workshop Materials
