@@ -13,7 +13,7 @@ The Stata code (*.do file) for this workshop is located in the following [folder
 I also wrote an R tutorial on two-part models, which is located on my [RPubs](https://rpubs.com/mbounthavong/two-part-model-in-r) site.
 
 ## Past presentations
-I presented some of these materials in the past on the VA Health Economics Resource Center (HERC) cyberseminar:
+I presented some of these materials in the past at the VA Health Economics Resource Center (HERC) cyberseminar:
 
   * 2023 ([link](https://www.hsrd.research.va.gov/for_researchers/cyber_seminars/archives/video_archive.cfm?SessionID=6337))
 
