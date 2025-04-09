@@ -2,7 +2,7 @@
 GitHub page: https://mbounthavong.github.io/Cost-as-a-dependent-variable/
 
 ## Workshop Materials
-Files for the "Cost as a dependent variable" presentation at VA HERC Econometrics Cyberseminar series
+Files for the "Cost as a dependent variable" presentation at [VA HERC Econometrics Cyberseminar series](https://www.herc.research.va.gov/include/page.asp?id=seminars-upcoming).
 
 Data used for this exericse comes from the Agency for Health Research and Quality (AHRQ) Medical Expenditure Panel Survey (MEPS) [2017 Full-Year Consolidated Data File](https://meps.ahrq.gov/mepsweb/data_stats/download_data_files_detail.jsp?cboPufNumber=HC-201). 
 
