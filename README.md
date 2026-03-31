@@ -12,7 +12,9 @@ The Stata code (*.do file) for this workshop is located in the following [folder
 
 I also wrote an R tutorial on two-part models, which is located on my [RPubs](https://rpubs.com/mbounthavong/two-part-model-in-r) site.
 
-I wrote a follow-up R tutorial on two-part models where the 95% confidence intervals are estimated using bootstrap methods on my [RPubs site](https://rpubs.com/mbounthavong/twopart_boot_r).
+I wrote a follow-up R tutorial on two-part models where the 95% confidence intervals are estimated using bootstrap methods on my [RPubs](https://rpubs.com/mbounthavong/twopart_boot_r) site.
+
+R codes are available on the [R Code folder](https://github.com/mbounthavong/Cost-as-a-dependent-variable/tree/main/R%20code).
 
 ## Past presentations
 I presented some of these materials in the past at the VA Health Economics Resource Center (HERC) cyberseminar:
